@@ -1,0 +1,13 @@
+# Example Terraform Variables File
+# Copy this file to terraform.tfvars and fill in your values
+
+# Required: Your Datadog API Key
+# Get it from: https://app.datadoghq.com/organization-settings/api-keys
+datadog_api_key = "YOUR_DATADOG_API_KEY"
+
+# Optional: Datadog Site (default: datadoghq.com)
+# Use datadoghq.eu for EU, datadoghq.com for US, etc.
+# datadog_site = "datadoghq.com"
+
+# Optional: AWS Region (default: ap-northeast-2)
+# aws_region = "ap-northeast-2"
