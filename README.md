@@ -96,23 +96,30 @@ cd securityhub-to-datadog
 2. "New Key" 버튼을 클릭하여 새 API 키 생성
 3. 생성된 API 키를 안전한 곳에 복사
 
-### 3. 환경 변수 설정
+### 3. 환경 변수 설정 (중요! 🔒)
 
 ```bash
 # terraform.tfvars.example을 복사
 cp terraform.tfvars.example terraform.tfvars
 
 # terraform.tfvars 파일 편집
-# datadog_api_key에 발급받은 API 키 입력
+vim terraform.tfvars
+# 또는
+nano terraform.tfvars
 ```
 
-`terraform.tfvars` 예시:
+`terraform.tfvars` 파일 내용 (발급받은 실제 API 키 입력):
 
 ```hcl
-datadog_api_key = "your_actual_datadog_api_key_here"
-datadog_site    = "datadoghq.com"  # EU의 경우 datadoghq.eu
-aws_region      = "ap-northeast-2"  # Seoul region
+datadog_api_key = "abcd1234efgh5678ijkl9012mnop3456"  # 실제 API 키로 교체
+datadog_site    = "datadoghq.com"                      # EU의 경우 datadoghq.eu
+aws_region      = "ap-northeast-2"                     # Seoul region
 ```
+
+**⚠️ 주의사항:**
+- `terraform.tfvars` 파일은 **절대 Git에 커밋하지 마세요**
+- 이 파일은 `.gitignore`에 포함되어 있어 자동으로 제외됩니다
+- API 키가 노출되면 즉시 폐기하고 새로 발급받으세요
 
 ### 4. AWS Security Hub 활성화
 
@@ -262,10 +269,133 @@ aws securityhub enable-security-hub --region <YOUR_REGION>
 
 ## 보안 고려사항
 
-- ✅ API 키는 Secrets Manager에 암호화되어 저장
-- ✅ Lambda 함수는 최소 권한 원칙(Least Privilege) 적용
-- ✅ `terraform.tfvars`는 `.gitignore`에 포함되어 버전 관리에서 제외
-- ✅ 모든 통신은 HTTPS를 통해 암호화
+### 🔒 API 키 보안
+
+이 프로젝트는 Datadog API 키를 안전하게 관리하기 위한 여러 보안 메커니즘을 제공합니다:
+
+#### 1. 코드 레벨 보안 ✅
+
+- **변수 선언만 포함**: `variables.tf`에는 변수 선언만 있고 실제 값은 없음
+- **Sensitive 플래그**: API 키는 `sensitive = true`로 설정되어 로그에 노출되지 않음
+- **Git 제외**: `terraform.tfvars`는 `.gitignore`에 포함되어 버전 관리에서 제외
+
+#### 2. AWS 레벨 보안 ✅
+
+- **Secrets Manager 암호화**: API 키는 AWS Secrets Manager에 암호화되어 저장
+- **IAM 최소 권한**: Lambda 함수는 필요한 권한만 부여 (Least Privilege)
+- **VPC 격리**: 필요시 Lambda를 Private Subnet에 배포 가능
+
+#### 3. 전송 레벨 보안 ✅
+
+- **HTTPS 통신**: 모든 API 통신은 TLS/SSL로 암호화
+- **Secret ARN 참조**: Lambda는 Secret 값이 아닌 ARN을 통해 접근
+
+### 🛡️ API 키 안전하게 사용하기
+
+#### 방법 1: 변수 파일 사용 (권장)
+
+```bash
+# 1. 예시 파일 복사
+cp terraform.tfvars.example terraform.tfvars
+
+# 2. terraform.tfvars 편집 (실제 API 키 입력)
+cat > terraform.tfvars << 'EOF'
+datadog_api_key = "your-actual-api-key-here"
+datadog_site    = "datadoghq.com"
+aws_region      = "ap-northeast-2"
+EOF
+
+# 3. 실행
+terraform apply
+```
+
+#### 방법 2: 환경 변수 사용
+
+```bash
+# API 키를 환경 변수로 설정
+export TF_VAR_datadog_api_key="your-actual-api-key-here"
+
+# 실행
+terraform apply
+```
+
+#### 방법 3: 명령줄 입력
+
+```bash
+# 실행 시 대화형으로 입력
+terraform apply
+# 프롬프트에서 API 키 입력
+
+# 또는 명령줄에서 직접 전달
+terraform apply -var="datadog_api_key=your-actual-api-key-here"
+```
+
+### ⚠️ GitHub에 올리기 전 체크리스트
+
+배포 전 다음 사항을 반드시 확인하세요:
+
+- [ ] `variables.tf`에 `default` 값이 없는지 확인
+- [ ] `.gitignore`에 `*.tfvars` 포함 확인
+- [ ] `terraform.tfvars` 파일이 Git 추적되지 않는지 확인
+- [ ] `terraform.tfvars.example`에 실제 값이 없는지 확인
+- [ ] `*.tfstate` 파일이 제외되었는지 확인
+
+#### Git 커밋 전 검사
+
+```bash
+# 민감한 정보가 코드에 있는지 검색
+grep -r "your-actual-api-key" .
+grep -r "datadog.*key.*=" *.tf
+
+# Git 상태 확인
+git status
+
+# Git에 추가되지 않아야 할 파일들
+# - terraform.tfvars
+# - *.tfstate
+# - .terraform/
+```
+
+### 🚨 만약 실수로 API 키를 커밋했다면?
+
+1. **즉시 API 키 폐기**
+   ```bash
+   # Datadog Console → API Keys → Revoke
+   ```
+
+2. **새 API 키 생성**
+
+3. **Git 히스토리에서 제거**
+   ```bash
+   # BFG Repo-Cleaner 사용 (권장)
+   bfg --replace-text passwords.txt
+   
+   # 또는 git filter-branch
+   git filter-branch --force --index-filter \
+     "git rm --cached --ignore-unmatch terraform.tfvars" \
+     --prune-empty --tag-name-filter cat -- --all
+   
+   # Force push (주의!)
+   git push origin --force --all
+   ```
+
+4. **리포지토리 재검토**: GitHub Secret Scanning 결과 확인
+
+### 🔍 보안 모범 사례
+
+1. **정기적인 키 로테이션**
+   - Datadog API 키를 주기적으로 변경 (분기별 권장)
+   
+2. **최소 권한 원칙**
+   - API 키에 필요한 최소한의 권한만 부여
+
+3. **모니터링**
+   - CloudWatch Logs로 Lambda 실행 로그 모니터링
+   - 비정상적인 API 호출 패턴 감지
+
+4. **백업**
+   - Terraform State를 안전한 S3 버킷에 저장
+   - State 파일 암호화 활성화
 
 ## 참고 자료
 

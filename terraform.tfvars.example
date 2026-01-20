@@ -1,13 +1,47 @@
-# Example Terraform Variables File
-# Copy this file to terraform.tfvars and fill in your values
+# Terraform Variables Example
+# ⚠️ 실제 사용 시 이 파일을 terraform.tfvars로 복사하고 실제 값을 입력하세요
 
-# Required: Your Datadog API Key
-# Get it from: https://app.datadoghq.com/organization-settings/api-keys
-datadog_api_key = "YOUR_DATADOG_API_KEY"
+# ==================================================
+# Required Variables
+# ==================================================
 
-# Optional: Datadog Site (default: datadoghq.com)
-# Use datadoghq.eu for EU, datadoghq.com for US, etc.
-# datadog_site = "datadoghq.com"
+# Datadog API Key (필수)
+# 발급 방법:
+#   1. https://app.datadoghq.com/ 로그인
+#   2. Organization Settings → API Keys
+#   3. "New Key" 클릭하여 생성
+#   4. 생성된 API 키를 아래에 입력
+datadog_api_key = "your-actual-datadog-api-key-here"
 
-# Optional: AWS Region (default: ap-northeast-2)
-# aws_region = "ap-northeast-2"
+# ==================================================
+# Optional Variables
+# ==================================================
+
+# Datadog Site (선택사항, 기본값: datadoghq.com)
+# 사용 가능한 값:
+#   - datadoghq.com (US1)
+#   - datadoghq.eu (EU)
+#   - us3.datadoghq.com (US3)
+#   - us5.datadoghq.com (US5)
+#   - ap1.datadoghq.com (AP1)
+datadog_site = "datadoghq.com"
+
+# AWS Region (선택사항, 기본값: ap-northeast-2)
+# 예: ap-northeast-2 (Seoul), us-east-1 (N.Virginia)
+aws_region = "ap-northeast-2"
+
+# ==================================================
+# 사용 방법
+# ==================================================
+# 1. 이 파일을 복사:
+#    cp terraform.tfvars.example terraform.tfvars
+#
+# 2. terraform.tfvars 파일 편집:
+#    datadog_api_key에 실제 API 키 입력
+#
+# 3. Terraform 실행:
+#    terraform init
+#    terraform plan
+#    terraform apply
+#
+# ⚠️ 주의: terraform.tfvars 파일은 절대 Git에 커밋하지 마세요!
