@@ -38,3 +38,14 @@ terraform.rc
 *.swp
 *.swo
 *~
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Diagram generation script (not needed in repo)
+generate_diagram.py

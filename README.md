@@ -26,19 +26,9 @@ AWS Security Hub는 AWS 환경의 보안 상태에 대한 종합적인 뷰를 �
 
 ## 아키텍처
 
-```mermaid
-graph LR
-    A[AWS Security Hub] -->|Findings| B[Amazon EventBridge]
-    B -->|Trigger| C[Lambda Function<br/>Datadog Forwarder]
-    C -->|API Call| D[Datadog]
-    E[Secrets Manager] -.->|API Key| C
-    
-    style A fill:#FF9900,stroke:#232F3E,stroke-width:2px,color:#fff
-    style B fill:#FF9900,stroke:#232F3E,stroke-width:2px,color:#fff
-    style C fill:#FF9900,stroke:#232F3E,stroke-width:2px,color:#fff
-    style D fill:#632CA6,stroke:#4B2278,stroke-width:2px,color:#fff
-    style E fill:#DD344C,stroke:#B92942,stroke-width:2px,color:#fff
-```
+![Architecture Diagram](images/architecture.png)
+
+*이 아키텍처 다이어그램은 [Diagrams](https://diagrams.mingrammer.com/)를 사용하여 코드로 생성되었습니다.*
 
 ### 데이터 흐름
 
